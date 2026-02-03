@@ -35,7 +35,7 @@ Then use the process tool to query task status.
 Use the `-p` or `--print` flag to run in non-interactive mode:
 
 ```bash
-cd path_to_project && claude -p "(Your task description. Be as clear as possible.)" --allowedTools "Bash,Read,Edit,Write"
+cd path_to_project && claude -p '(Your task description. Be as clear as possible.)' --allowedTools 'Bash,Read,Edit,Write'
 ```
 
 Involve this to let Claude Code inform you upon work completion:
