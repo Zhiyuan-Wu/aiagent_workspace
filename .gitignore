@@ -1,6 +1,7 @@
 *
 !.gitignore
-!skills
+!skills/
+!skills/**/*
 !AGENTS.md
 !HEARTBEAT.md
 !IDENTITY.md
