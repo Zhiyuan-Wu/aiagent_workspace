@@ -11,7 +11,10 @@ metadata:
 
 Use the **exec** command (with background mode) to run a headless Claude Code Agent for all coding work, as well as most general tasks. Simple and effective.
 
-Then use the process tool to query task status.
+**Important Notes:**
+1. The `exec` command has a default timeout of 1800 seconds (30 minutes). Use a higher timeout value if you expect a long-running experiment.
+2. Since `exec` occasionally fails to correctly parse exceptionally long commands, the best practice is to write your instruction content into a file (e.g., `~/.openclaw/workspace/claude_tasks/task_YYMMDD_hhmmss.txt`) and then give Claude Code a simple instruction: `'Read path/to/task_xxx.txt for work details.'`
+3. Use the process tool to query task status.
 
 ### Process Tool Actions (for background sessions)
 
@@ -35,7 +38,7 @@ Then use the process tool to query task status.
 Use the `-p` or `--print` flag to run in non-interactive mode:
 
 ```bash
-cd path_to_project && claude -p '(Your task description. Be as clear as possible.)' --allowedTools 'Bash,Read,Edit,Write'
+cd path_to_project && claude -p 'Read path/to/task_xxx.txt for work details.' --allowedTools 'Bash,Read,Edit,Write'
 ```
 
 Involve this to let Claude Code inform you upon work completion:
