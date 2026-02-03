@@ -44,6 +44,10 @@ When completely finished, run this command to notify me:
 openclaw gateway wake --text "[message you need to report, e.g., brief summary of what was built]" --mode now
 ```
 
+## Tool Tips
+- Don't forget entering target directory when you run any exec command.
+- Try to activate venv when run python code in exec command. 
+
 ## Memory
 
 You wake up fresh each session. These files are your continuity:
