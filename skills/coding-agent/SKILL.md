@@ -23,14 +23,19 @@ Use the **`exec`** command—**always with `background: true`, `pty: true`, and 
 
 ## Workflow Guidelines
 
-1. **Write a comprehensive task description** to a timestamped file using the `write` tool. Use a descriptive filename such as:  
-   `/absolute/path/to/task_20260101_140721_some_job.txt`
+1.  **Write a comprehensive task description** to a timestamped file using the `write` tool. Use a descriptive filename such as:
+    `/absolute/path/to/task_20260101_140721_some_job.txt`
 
-   💡 **Tip:** Include the following instruction at the end of your task description to ensure Claude Code notifies you upon completion:
-   ```text
-   When completely finished, run this command to inform me:
-   openclaw gateway wake --text "(Claude Code's return message or next step suggestions)" --mode now
-   ```
+    💡 **Tip:** Include the following instruction at the end of your task description to ensure Claude Code notifies you upon completion:
+    ```text
+    When completely finished, run this command to inform me:
+    openclaw gateway wake --text "(Claude Code's return message or next step suggestions)" --mode now
+    ```
+
+    💡 **Tip:** If you need Claude Code to run an experiment, ensure you require the experimental script to output the process and results to a file. This facilitates your ability to judge the progress of the experiment while Claude Code is autonomously running it.
+    ```text
+    When running a Python script, make sure it logs key steps, outputs intermediate results, and saves final data to a well-named file (e.g., `python3 your_script.py > experiment_log_YYYYMMDD_HHMMSS.txt`). This allows for progress monitoring and post-experiment analysis.
+    ```
 
 2. **Launch the agent** using the `exec` tool with the required flags **(`background: true`, `pty: true`, `timeout: 86400`)**:
    ```bash
