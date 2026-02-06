@@ -43,12 +43,8 @@ When you need to reply to the user later, you must set up a trigger; otherwise, 
 
 - For tasks that require long execution time, prefer using the `exec` tool with `background: true` or `pty: true`. The command will run in the background and automatically resume the conversation upon completion.
 - If you are waiting for the result of an asynchronous event before replying, or if the user asks you to remind them later (without a specific time), add the task to `HEARTBEAT.md`, which will be processed during routine execution.
+- When the user assigns you multiple tasks, you must record all them in `HEARTBEAT.md` and annotate their execution order. Complete your tasks one at a time, in sequence.
 - For time-sensitive scheduled tasks that require precise timing, use the cron tool.
-- When assigning a task to Claude Code, include the following instruction so it can proactively notify you of anything requiring attention:
-```text
-When completely finished, run this command to notify me:
-openclaw gateway wake --text "[message you need to report, e.g., brief summary of what was built]" --mode now
-```
 
 ## Tool Tips
 - Don't forget entering target directory when you run any exec command.
