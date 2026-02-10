@@ -2,12 +2,11 @@
 
 ## Routine – Perform these checks regularly (DO NOT REMOVE)
 1. Use `git pull` to fetch any changes to workspace from remote repository.
-2. Check if there's a background task that hasn't synchronized its status with user for over 2h. Check latest task status and inform the user.
-3. Record experience and common strategies you've learned while solving problems into `MEMORY.md`. Remove completed term in `HEARTBEAT.md`. If you have any new findings, report to user.
+2. Check the status of all background tasks, report the latest progress to the user, and if the prerequisite tasks of any todo items in `HEARTBEAT.md` are completed, start the subsequent tasks.
+3. Remove completed term in `HEARTBEAT.md`
+4. Record experience and common strategies you've learned while solving problems into `MEMORY.md`. If you have any new findings or suggestions, report to user.
 
-## Remind – List below any items you need to handle later (e.g., checking results, notifying the user, etc.). Remove each item once it has been addressed.
-
-## TODO – List below any items you can run during idle time (to be executed when there are no other primary tasks and no background tasks requiring monitoring), or tasks that have prerequisite dependencies.
+## TODO – List below any items you need to handle later (e.g., checking results, notifying the user, etc.). Remove each item once it has been addressed.
 
 ## Alpha Mining 项目任务清单
 
@@ -121,53 +120,3 @@
 - **任务文件**: `/Users/imac/.openclaw/workspace/alpha_mining/task_6_mlflow_investigation.md`
 - **任务五状态**: ✅ 已完成（提交到git）
 
-### 📊 调查结果
-
-**根本原因**：
-- qlib在 `venv/lib/python3.12/site-packages/qlib/workflow/recorder.py:339` 自动调用 `mlflow.start_run()`
-- MLflow维护全局活动run状态，单线程只能有一个活动run
-- 当第一个回测任务仍在运行时，第二个任务尝试创建run会失败
-
-**推荐方案**（⭐⭐⭐ 最简单，难度最低）：
-- 方案A：完全禁用MLflow
-  - 方法：在backend/main.py中，导入qlib之前注入假的mlflow模块到sys.modules
-  - 优点：最简单，完全解决并发问题，易于维护
-  - 不修改第三方库
-
-**调查报告**：
-- `mlflow_investigation_root_cause.md` - 根本原因分析（6871字节）
-- `mlflow_investigation_solutions.md` - 5个解决方案（30670字节）
-- `mlflow_investigation_implementation_guide.md` - 实施指南（21458字节）
-
-**待实施**：
-- 查看详细报告
-- 选择推荐方案A（完全禁用MLflow）
-- 按照实施指南修改backend/main.py
-- 运行测试验证修复
-
-**完成时间**：2026-02-10 09:19
-**推送状态**：✅ 所有文档已提交到远程仓库
-
-### 📊 调查结果
-
-**根本原因**：
-- qlib在 `venv/lib/python3.12/site-packages/qlib/workflow/recorder.py:339` 自动调用 `mlflow.start_run()`
-- MLflow维护全局活动run状态，单线程只能有一个活动run
-- 当第一个回测任务仍在运行时，第二个任务尝试创建run会失败
-
-**推荐方案**（⭐⭐⭐ 最简单，难度最低）：
-- 方案A：完全禁用MLflow
-  - 方法：在backend/main.py中，导入qlib之前注入假的mlflow模块到sys.modules
-  - 优点：最简单，完全解决并发问题，易于维护
-  - 不修改第三方库
-
-**调查报告**：
-- `/Users/imac/.openclaw/workspace/alpha_mining/mlflow_investigation_root_cause.md` - 根本原因分析（6871字节）
-- `/Users/imac/.openclaw/workspace/alpha_mining/mlflow_investigation_solutions.md` - 5个解决方案（30670字节）
-- `/Users/imac/.openclaw/workspace/alpha_mining/mlflow_investigation_implementation_guide.md` - 实施指南（21458字节）
-
-**待实施**：
-- 查看详细报告
-- 选择推荐方案A（完全禁用MLflow）
-- 按照实施指南修改backend/main.py
-- 运行测试验证修复
