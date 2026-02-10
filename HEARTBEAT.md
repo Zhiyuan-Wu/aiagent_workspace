@@ -135,6 +135,33 @@
   - 不修改第三方库
 
 **调查报告**：
+- `mlflow_investigation_root_cause.md` - 根本原因分析（6871字节）
+- `mlflow_investigation_solutions.md` - 5个解决方案（30670字节）
+- `mlflow_investigation_implementation_guide.md` - 实施指南（21458字节）
+
+**待实施**：
+- 查看详细报告
+- 选择推荐方案A（完全禁用MLflow）
+- 按照实施指南修改backend/main.py
+- 运行测试验证修复
+
+**完成时间**：2026-02-10 09:19
+**推送状态**：✅ 所有文档已提交到远程仓库
+
+### 📊 调查结果
+
+**根本原因**：
+- qlib在 `venv/lib/python3.12/site-packages/qlib/workflow/recorder.py:339` 自动调用 `mlflow.start_run()`
+- MLflow维护全局活动run状态，单线程只能有一个活动run
+- 当第一个回测任务仍在运行时，第二个任务尝试创建run会失败
+
+**推荐方案**（⭐⭐⭐ 最简单，难度最低）：
+- 方案A：完全禁用MLflow
+  - 方法：在backend/main.py中，导入qlib之前注入假的mlflow模块到sys.modules
+  - 优点：最简单，完全解决并发问题，易于维护
+  - 不修改第三方库
+
+**调查报告**：
 - `/Users/imac/.openclaw/workspace/alpha_mining/mlflow_investigation_root_cause.md` - 根本原因分析（6871字节）
 - `/Users/imac/.openclaw/workspace/alpha_mining/mlflow_investigation_solutions.md` - 5个解决方案（30670字节）
 - `/Users/imac/.openclaw/workspace/alpha_mining/mlflow_investigation_implementation_guide.md` - 实施指南（21458字节）
