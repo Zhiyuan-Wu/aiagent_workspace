@@ -30,32 +30,37 @@
 - [x] Task 6: Experiment on different tournament mechanisms (exp4 report) ✅
   - Results: Double-Elim best (Sharpe 1.018, Return 21.9%)
   - Files in: exp4_results/
-- [x] Task 7: Experiment on tournament run count impact (exp5 report)
-  - Note: Partial results only (n=1,3,5,10), n=15,20,30 failed due to Gym dependency issue
-  - Files: exp5_results/ (partial)
-- [x] Task 8: Read all experiment reports and create final parameter analysis report, sync to Notion
+- [ ] Task 7: Experiment on tournament run count impact (exp5 report)
+  - Note: Partial results only, n=15,20,30 failed due to Gym dependency issue
+  - Retry after Task 11
+- [ ] Task 8: Read all experiment reports and create final parameter analysis report, sync to Notion
   - Report created: alpha_mining/final_parameter_analysis_report.md ✅
   - Notion sync: Requires Notion skill/API key
-- [x] Task 9: Implement adaptive boundary focusing ranking method
+- [ ] Task 9: Implement adaptive boundary focusing ranking method
   - Reference: great_blog/math_behind_efficient_pair_wise_ranking.md
   - Goal: Implement efficient stable ranking in myportfolio.py
   - Compare with baseline (single/double-elim) via experiment
-  - **Execute after Tasks 4-7 complete**
-- [x] Task 10: Fix backend concurrent backtest execution issue
+  - Execute after Tasks 4-7 complete
+- [ ] Task 10: Fix backend concurrent backtest execution issue
   - Reference: alpha_mining/mlflow_investigation_root_cause.md
   - Root cause: MLflow thread-local storage conflicts
   - Solution: Use thread pool and independent threads for each backtest task
   - Add concurrency control parameter to backend
   - Implement task queue with max concurrency limit (default: 5)
-  - **Test**: Create 2 concurrent backtest tasks, verify both execute async
-  - **Execute after Tasks 9 complete**
-- [x] Task 11.1: Optimize myportfolio.py memory efficiency ✅ (COMPLETED)
+  - Test: Create 2 concurrent backtest tasks, verify both execute async
+  - Execute after Tasks 9 complete
+- [ ] Task 11.1: Optimize myportfolio.py memory efficiency ✅ (COMPLETED)
+  - Reference: great_blog/myportfolio_optimize_tips.md
+  - Goal: Fix PyTorch OOM issues, implement streaming data generation
+  - Key optimizations: normalization, quantile caching, efficient sampling
+  - After optimization: Re-run Exp3 (model architectures) to get complete results
   - Status: Memory optimization code implemented and tested
   - Results: 15% memory reduction (from 7.3GB to ~6.4GB), streaming generator working
   - Files: alpha_mining/task_11_memory_optimization_report.md
-  - Notes: Validation phase failed due to handler incompatibility (Qlib DataFrames don't support streaming), but training phase successful
+  - Notes: Validation phase failed due to handler API incompatibility with streaming approach (Qlib DataFrames don't support streaming)
   - Recommendations: Use streaming generator in production, consider custom data handler for full streaming support
 - [ ] Task 11.2: Explore advanced deep learning methods (NEW - NEXT)
-  - Goal: After Task 11.1, find optimal neural architecture beyond LGBM baseline
   - Ideas: deeper networks, residual connections, batch normalization, auxiliary point-wise loss
+  - Goal: After Task 11.1, find optimal neural architecture beyond LGBM baseline
+  - Generate comprehensive report and update myportfolio.py with best architecture
   - Execute after Task 11.1 complete
