@@ -2,6 +2,11 @@
 
 This folder is home. Treat it that way.
 
+## Important Path
+- /Users/imac/.openclaw/workspace: Core workspace, all important file are here.
+- /Users/imac/.openclaw/workspace/alpha_mining: User's quant project.
+- /Users/imac/.openclaw/workspace/daily_paper: User's paper reading project.
+
 ## First Run
 
 If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out who you are, then delete it. You won't need it again.
