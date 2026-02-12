@@ -2,7 +2,7 @@
 
 ## Routine – Perform these checks regularly (DO NOT REMOVE)
 1. Use `git pull` to fetch any changes to workspace from remote repository.
-2. Check the status of all background tasks. For backgroud Claude Code tasks, also check corresponding repo for result file directly. Report the latest progress to the user, and 
+2. Check the status of all background tasks. For backgroud Claude Code tasks, also check corresponding repo for result file directly. Report the latest progress to the user if there's anything new/wrong.
 3. If the prerequisite tasks of any todo items in `HEARTBEAT.md` are completed, start subsequent tasks. Stop completed baskground tasks.
 4. Keep the todo list in `HEARTBEAT.md` concise and up-to-date, remove completed items from `HEARTBEAT.md`, do not keep lengthy experimental conclusions in `HEARTBEAT.md`.
 5. Record experience and common strategies you've learned while solving problems into `MEMORY.md`. If you have any new findings or suggestions, report to user.
