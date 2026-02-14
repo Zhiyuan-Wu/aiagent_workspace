@@ -65,6 +65,11 @@ If your task involves experiments that are expected to run for an extended durat
 For long-running experiments, execute them in incremental stages. After each stage, save and report intermediate results (e.g., metrics, checkpoints, or logs) before proceeding to the next stage. Do not wait until the entire experiment finishes to provide updates.
 ```
 
+## Trouble Shooting
+
+**1. Claude seems stuck**
+Claude Code may complete actual work but forget to write reports to expected locations or notify you upon completion (even if you explicitly asked it to). It is important to check any possible results yourself. You need to carefully examine all file changes (for example, through git or by checking file modification dates) to find possible code modifications or log outputs, in order to determine whether the task is truly stuck or just hasn't provided feedback.
+
 ## What Can Claude Code Do?
 
 You can delegate virtually **any technical or analytical task** to Claude Code—from professional software engineering to orchestrating multi-hour experiments. Its capabilities include:
