@@ -3,9 +3,8 @@
 ## 1. 背景与动机
 
 ### 1.1 问题定义
-在 pair-wise 排序学习框架中，需要将 N 只股票进行排序以构建投资组合。传统方法（如单淘汰赛、双淘汰赛、随机匹配）对所有股票对进行均匀比较，存在以下问题：
+在 pair-wise 排序学习框架中，需要将 N 只股票进行排序，选出Top-k收益的股票以构建投资组合，如何在有限的比较预算下准确的估计top-k是一个重要的问题。传统方法（如单淘汰赛、双淘汰赛、随机匹配）对所有股票对进行均匀比较，存在以下问题：
 
-- **计算效率低**：对于 N 只股票，需要进行 O(N²) 次比较
 - **聚焦不足**：对所有股票一视同仁，未关注对投资决策最关键的边界区域
 - **资源浪费**：在明显优秀的股票和明显较差的股票上花费过多比较预算
 
@@ -51,9 +50,9 @@ ucb_value = (
 ### 1.3 实验目标
 
 寻找自适应边界聚焦方法的最优参数配置与变种，以达到：
-- **更高的 IC/Rank IC**：更准确的股票排序
+- **更高的 Rank IC**：更准确的股票排序
 - **更好的回测收益**：更高的年化收益率和夏普比率
-- **更高的计算效率**：更少的模型推理次数
+- **可控的计算效率**：更少的端到端回测时间
 
 ---
 
@@ -104,7 +103,7 @@ data/models/
 
 **辅助指标**（用于综合判断）：
 - IC (Information Coefficient)
-- Rank IC
+- Rank IC (直接衡量排序结果质量)
 - 夏普比率 (Sharpe Ratio)
 - 最大回撤 (Max Drawdown)
 - Calmar 比率
@@ -254,25 +253,21 @@ ucb_weight_configs = [
 
 ---
 
-### 实验 5: 批量大小 (BATCH_SIZE) 调优
+### 实验 5: 确定UCB比较随机性影响
 
-**目标**：确定批量推理的最优大小。
+**目标**：当前为从所有候选配对中（既有边界内配对，也有边界外配对），选择ucb值最高的BATCH_SIZE个股票。这可能会受限于ucb的合理性而选择不到其它配对，修改代码为以ucb值作为logit，使用temperature-softmax生成配对采样分布，从分布中随机采样BATCH_SIZE个股票
 
-**变量**：`BATCH_SIZE` 常量（当前固定为5）
+**变量**：temperature的选择（当前等效为temperature=0，固定选择top-BATCH_SIZE ucb的股票）
 
 **设置**（基于实验1-4的最佳配置）：
 ```python
-batch_size_configs = [1, 3, 5, 10, 20]
+temperature = [0.0, 0.3, 1.0, 3.0, 10.0]
 ```
 
-**修改代码位置**：`sorting_algorithms.py:433`
-
 **预期**：
-- 批量过小：推理开销大，速度慢
-- 批量适中：平衡推理效率与排序精度
-- 批量过大：单轮更新步长过大，可能不稳定
+- 过高或过低的temperature都是次优的，存在一个最优的采样随机性
 
-**评估**：同时考虑 年化收益率 与 总推理时间
+**评估**：同时考虑 年化收益率 与 Rank IC
 
 ---
 
@@ -327,7 +322,7 @@ final_score = (wins + prior_wins) / (wins + prior_wins + losses + prior_losses)
 **设置**（基于实验1-6的最佳配置）：
 ```python
 bayesian_prior_configs = [
-    ("弱先验", 1),      # prior_wins=1, prior_losses=1
+    ("弱先验", 0),      # prior_wins=0, prior_losses=0
     ("默认先验", 2),    # prior_wins=2, prior_losses=2（默认）
     ("强先验", 5),      # prior_wins=5, prior_losses=5
 ]
@@ -401,90 +396,13 @@ else:
 
 ---
 
-### 实验 10: 不同模型架构下的泛化性验证
-
-**目标**：验证自适应方法在深度学习模型上的泛化性。
-
-**变量**：模型类型
-
-**设置**（基于实验1-9的最佳自适应参数）：
-```python
-model_type_configs = [
-    ("LGBM", "lgbm"),
-    ("MLP", "mlp"),
-    ("MLP + LayerNorm", "mlp_residual"),
-    ("Twin-Tower", "twin_tower"),
-]
-```
-
-**执行**：
-```bash
-# LGBM
-python myportfolio.py --model lgbm --load-model-path data/models/baseline_lgbm_model.pkl ...
-
-# MLP（需训练）
-python myportfolio.py --model mlp --hidden-layers 512 256 128 ...
-
-# Twin-Tower（需训练）
-python myportfolio.py --model twin_tower ...
-```
-
-**预期**：
-- 自适应方法对不同模型架构均有效
-- 深度学习模型可能需要不同的最优参数配置
-
----
-
-### 实验 11: 与其他排序方法的对比
-
-**目标**：验证自适应方法相对于其他排序方法的优越性。
-
-**设置**（所有方法使用相同的比较预算）：
-```python
-sorting_method_configs = [
-    ("随机匹配", "random_matching"),
-    ("单淘汰赛", "single_elim"),
-    ("双淘汰赛", "double_elim"),
-    ("混合排序", "hybrid"),
-    ("自适应边界聚焦", "adaptive"),
-]
-```
-
-**控制变量**：
-- 所有方法的比较次数 = 实验1-9确定的最优 budget
-- 使用相同的基准模型
-
-**评估指标对比**：
-- IC / Rank IC
-- 年化收益率
-- 夏普比率
-- 计算时间
-
-**预期**：
-- 自适应方法在相同预算下达到更高的 IC 和收益率
-- 自适应方法计算效率更高
-
----
-
-### 实验 12: 最终最优配置综合测试
+### 实验 10: 最终最优配置综合测试
 
 **目标**：综合所有实验结果，形成最优配置推荐。
 
 **设置**：
-- 模型：实验10中表现最佳的模型
 - 排序方法：adaptive
 - 参数：实验1-9确定的最优参数组合
-
-**执行**：
-```bash
-python -m pair_wise_ranking.workflow \
-    --model <best_model> \
-    --tournament adaptive \
-    --budget <optimal_budget> \
-    --boundary-bandwidth <optimal_bw> \
-    --exploration-ratio <optimal_er> \
-    ...
-```
 
 **输出**：
 - 最优配置的性能报告
@@ -518,11 +436,7 @@ python -m pair_wise_ranking.workflow \
     ↓
 实验9（多阶段）→ 确定 best_stage_strategy
     ↓
-实验10（模型泛化性）→ 确定 best_model
-    ↓
-实验11（方法对比）→ 验证优越性
-    ↓
-实验12（最优配置）→ 最终报告
+实验10（最优配置）→ 最终报告
 ```
 
 ### 4.2 结果记录
@@ -558,140 +472,11 @@ data/experiments/adaptive_ranking/
 
 ---
 
-## 5. 预期贡献
-
-### 5.1 学术贡献
-
-- **算法创新**：自适应边界聚焦方法的理论分析与实验验证
-- **参数敏感性**：系统性研究各参数对性能的影响
-- **泛化性验证**：在不同模型架构上的有效性
-
-### 5.2 实践贡献
-
-- **最优参数配置**：提供可直接用于生产环境的参数推荐
-- **计算效率提升**：在相同或更高性能下减少计算成本
-- **开源实现**：完整的实验代码和结果复现指南
-
-### 5.3 潜在扩展
-
-- **动态 topk**：根据市场状态动态调整 topk 值
-- **多目标边界**：同时考虑收益、风险、流动性等多个维度的边界
-- **在线学习**：根据最新市场数据实时更新排序
-- **跨市场验证**：在其他市场（如美股、港股）上的验证
-
----
-
-## 6. 附录：代码修改清单
-
-### 6.1 模型保存与加载功能
-
-**新增函数**（`models.py`）：
-```python
-def save_model(self, path: str) -> None:
-    """保存模型到指定路径"""
-
-def load_model(self, path: str) -> None:
-    """从指定路径加载模型"""
-```
-
-### 6.2 参数化接口
-
-**修改 `run_adaptive_boundary_focusing` 函数签名**（`sorting_algorithms.py:391-427`）：
-```python
-def run_adaptive_boundary_focusing(
-    date: pd.Timestamp,
-    stocks: List[str],
-    features: Dict[str, np.ndarray],
-    model_predict_fn: Callable[[List[Tuple[str, str, np.ndarray]]], np.ndarray],
-    budget: int = 100,
-    topk: int = 50,
-    boundary_bandwidth: int = 10,
-    exploration_ratio: float = 0.2,
-    batch_size: int = 5,                    # 新增
-    ucb_weights: tuple = (0.3, 0.4, 0.3),  # 新增
-    candidate_strategy_prob: float = 0.5,   # 新增
-    bayesian_prior: int = 2,               # 新增
-    adaptive_strategy: str = "fixed",       # 新增
-    random_seed: Optional[int] = None
-) -> Dict[str, float]:
-```
-
-### 6.3 配置文件支持
-
-**新增配置文件**（`config/adaptive_ranking_config.yaml`）：
-```yaml
-adaptive:
-  budget: 3000
-  topk: 50
-  boundary_bandwidth: 10
-  exploration_ratio: 0.2
-  batch_size: 5
-  ucb_weights: [0.3, 0.4, 0.3]
-  candidate_strategy_prob: 0.5
-  bayesian_prior: 2
-  adaptive_strategy: "fixed"
-```
-
----
-
-## 7. 时间估算
-
-| 实验编号 | 实验名称 | 预计耗时（小时） |
-|---------|---------|----------------|
-| 0 | baseline 模型训练 | 2-3 |
-| 1 | budget 扫描（4个配置） | 4-6 |
-| 2 | boundary_bandwidth（4个配置） | 4-6 |
-| 3 | exploration_ratio（4个配置） | 4-6 |
-| 4 | UCB 权重（4个配置） | 4-6 |
-| 5 | BATCH_SIZE（5个配置） | 5-7 |
-| 6 | 候选策略（3个配置） | 3-5 |
-| 7 | 贝叶斯先验（3个配置） | 3-5 |
-| 8 | 早停策略（3个配置） | 4-6 |
-| 9 | 多阶段（3个配置） | 4-6 |
-| 10 | 模型泛化性（4个模型） | 8-12 |
-| 11 | 方法对比（5个方法） | 6-8 |
-| 12 | 最优配置测试 | 2-3 |
-| **总计** | | **53-85 小时** |
-
-**建议执行周期**：2-3 周（每周20-30小时计算时间）
-
----
-
-## 8. 风险与缓解策略
-
-### 8.1 计算资源风险
-
-**风险**：实验数量多，总计算时间长
-
-**缓解**：
-- 使用模型复用策略，避免重复训练
-- 并行运行独立实验（不同参数配置）
-- 使用云服务器加速计算
-
-### 8.2 过拟合风险
-
-**风险**：参数搜索可能在测试集上过拟合
-
-**缓解**：
-- 保留一部分数据作为最终验证集（不参与参数搜索）
-- 使用时间序列交叉验证
-- 报告参数敏感性分析，而非单一最优值
-
-### 8.3 实现复杂度风险
-
-**风险**：部分实验需要修改核心代码
-
-**缓解**：
-- 采用配置文件方式，避免硬编码
-- 充分测试代码修改
-- 使用 git 分支管理，保持主分支稳定
-
----
-
-## 9. 成功标准
+## 5. 成功标准
 
 **实验计划成功的标志**：
-1. ✓ 找到相对于 baseline 有显著提升（年化收益率提升 > 2%）的配置
+0. ✓ 完成所有既定实验（必须）
+1. ✓ 找到相对于 baseline 有显著提升（年化收益率提升 > 5%）的配置
 2. ✓ 理解各参数对性能的影响规律
 3. ✓ 验证自适应方法在不同模型架构上的泛化性
 4. ✓ 形成可复现的最优配置推荐
