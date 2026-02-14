@@ -23,16 +23,16 @@ Use the **`exec`** command—**always with `background: true`, `pty: true`, and 
 
 ## Workflow Guidelines
 
-1.  **Write a comprehensive task description** to a timestamped file using the `write` tool. Use a descriptive filename such as:
-    `/absolute/path/to/task_20260101_140721_some_job.txt`
+1.  **Write a comprehensive task description** to a timestamped file using the `write` tool. Use a descriptive filename such as:  `/absolute/path/to/task_20260101_140721_some_job.txt`
 
-    **Important Note:** You **MUST** include all of the following elements in your task description (see the next section for an example):
-    *   **Length:** Do not exceed 2000 words.
-    *   **Content:** Include necessary background, the overall objective, a brief idea or approach, important notes and requirements, and a clear list of deliverables.
-    *   **Focus on the "What":** Define *what* needs to be done, but **never** provide a sample solution or pre-written code. Let Claude Code handle all implementation details.
-    *   **Notification:** Explicitly require the agent to notify you upon task completion; otherwise, tasks may end silently.
-    *   **Logging:** Require that any experiments or scripts log their intermediate results and outputs to files, allowing you to review the agent's progress.
-    *   **Reporting:** Require the generation of a final summary report.
+   **Important Note:** You **MUST** include all of the following elements in your task description (see the next section for an example):  
+   *   **Length:** Do not exceed 2000 words.  
+   *   **Structure:** Include necessary background, the overall objective, a brief idea or approach, important notes and requirements, and a clear list of deliverables.  
+   *   **Context:** If this task is part of a sequence, be sure to include a concise summary of prior tasks in the background—covering their objectives, relevant files, key findings, and outstanding issues. This context provides invaluable reference for Claude Code and significantly increases the likelihood of successful execution.  
+   *   **Focus on the "What":** Clearly define *what* needs to be done, but **never** provide sample solutions or pre-written code. Leave all implementation details to Claude Code.  
+   *   **Notification:** Explicitly require the agent to notify you upon task completion or need intervention; otherwise, tasks may terminate silently without feedback.  
+   *   **Logging:** Mandate that all experiments or scripts log intermediate results and outputs to persistent files, enabling you to monitor the agent’s progress and debug if necessary.  
+   *   **Reporting:** Require the generation of a final summary report that consolidates findings, outcomes, and any recommendations.
 
 2.  **Launch the agent** using the `exec` tool with the required flags **(`background: true`, `pty: true`, `timeout: 86400`)**:
     ```bash
@@ -49,7 +49,7 @@ Use the **`exec`** command—**always with `background: true`, `pty: true`, and 
 **1. Final Notification Instruction:**
 Include the following at the end of your task description to ensure Claude Code notifies you upon completion:
 ```text
-When completely finished, run this command to inform me:
+When completely finished or need intervention, run this command to inform me:
 openclaw gateway wake --text "(Claude Code's return message or next step suggestions)" --mode now
 ```
 
