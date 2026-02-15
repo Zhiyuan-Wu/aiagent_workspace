@@ -70,6 +70,9 @@ For long-running experiments, execute them in incremental stages. After each sta
 **1. Claude seems stuck**
 Claude Code may complete actual work but forget to write reports to expected locations or notify you upon completion (even if you explicitly asked it to). It is important to check any possible results yourself. You need to carefully examine all file changes (for example, through git or by checking file modification dates) to find possible code modifications or log outputs, in order to determine whether the task is truly stuck or just hasn't provided feedback.
 
+**2. Recover from 429 Too Many Requests**
+If you recently recover from a 429 Too Many Requests error, it's possible that launched Claude Code sessions may have been silently terminated without notification. Check your recent processes and their logs to identify their status. Send a follow-up message "Go on" will recover them.
+
 ## What Can Claude Code Do?
 
 You can delegate virtually **any technical or analytical task** to Claude Code—from professional software engineering to orchestrating multi-hour experiments. Its capabilities include:
