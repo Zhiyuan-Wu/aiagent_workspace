@@ -98,12 +98,16 @@ Use this when the user requests testing or feature validation. It follows the �
      - **Test Methodology**: Tools, frameworks, and pass/fail criteria  
 
 2. **Red Phase (Write Failing Tests)**  
-   - Create a subtask for Claude to implement the test suite (designed to fail initially).  
-   - Append the generated tests and failing output (“Red”) to the traceability file.
+   - Create a subtask for Claude to implement the test suite according to TDD trace file (designed to fail initially).
+   - Tell Claude to review the code first, find critical bug and improvement suggestions.
+   - Tell Claude to use chrome-devtools mcp for frontend interaction test, use python for backend api test.
+   - Tell Claude to do all test and generate a test report (but no need to repair code - thats green stage's work)
+   - Append the generated tests and failing output (“Red”) as a new red chapter to the traceability file.
 
 3. **Green Phase (Implement to Pass)**  
-   - Create a subtask for Claude to write minimal code that passes all tests.  
-   - Append the implementation and passing report (“Green”) to the traceability file.
+   - Create a subtask for Claude to repair the issue found in TDD trace file.
+   - Tell Claude to do all repair and generate a repair report.  
+   - Append the implementation report (“Green”) as a new green chapter to the traceability file.
 
 4. **Iteration & Refactoring**  
    - Repeat Red/Green cycles to cover all requirements and edge cases.  
@@ -111,7 +115,7 @@ Use this when the user requests testing or feature validation. It follows the �
    - **Every subtask must follow the full Task Management Workflow**: queued, single-executed, validated, archived.
 
 5. **Final Delivery**  
-   - Once complete, archive the traceability file, code, and reports in `task_history/`.  
+   - Once complete, archive the traceability file, code, and reports in `task_history/`. 
    - Deliver a summary report to the user covering the TDD process, final solution, and validation results.
 
 ## Skills - In case you need to follow a best practice, even you know how
@@ -131,11 +135,11 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 
 ### Pending Task Item Template in `HEARTBEAT.md`
 - [Pending/Runing/Complete/Fail] Task 10: Fix backend concurrent backtest execution issue 
-  - [Required] Raw User Request: (Full User request text / file path here)MLflow 使用线程本地存储维护活动运行状态，单线程只允许一个活动 run，多个回测任务在同一个线程中执行时，第二个任务会因第一个任务的 run 仍处于活动状态而失败，解决这个问题
+  - Raw User Request (This is a required term): (Full User request text / file path here)MLflow 使用线程本地存储维护活动运行状态，单线程只允许一个活动 run，多个回测任务在同一个线程中执行时，第二个任务会因第一个任务的 run 仍处于活动状态而失败，解决这个问题
   - Raw Reference: alpha_mining/mlflow_investigation_root_cause.md
   - Idea: Use thread pool and independent threads for each backtest task
   - Idea: Add concurrency control parameter to backend
   - Idea: Implement task queue with max concurrency limit (default: 5)
-  - [Required] Status: Claude Code Session ID (wild-coral) / Waiting for task 9
-  - [Required] Result: (Brief result / conclusion / important note after complete)
-  - [Required] Result File: Path/to/result.md
+  - Status (This is a required term): Claude Code Session ID (wild-coral) / Waiting for task 9
+  - Result (This is a required term): (Brief result / conclusion / important note after complete)
+  - Result File (This is a required term): Path/to/result.md
