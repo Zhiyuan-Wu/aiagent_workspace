@@ -19,6 +19,17 @@
 * API 参数设计：FastAPI 中，使用 Query() 声明 URL 查询参数，使用 Body() 或直接类型声明声明请求体参数。注意区分 GET 和 POST 请求的参数传递方式。
 * 测试分离：直接测试业务逻辑（如 MyAlpha handler）和通过 API 测试是两个层面。直接测试可以快速定位问题，API 测试验证端到端功能。
 
+## Exp6 SIGKILL Root Cause (2026-02-17)
+
+* **Issue:** 4 consecutive Exp6 failures with SIGKILL (9min → 59min → 22min → 30min)
+* **Root Cause:** MyAlpha handler initialization enters infinite retry loop during Qlib data loading
+* **Evidence:** Diagnostic testing shows process hangs during MyAlpha creation with repeated urllib3 warnings
+* **Symptoms:** Infinite loop of urllib3 warnings even after "Loading data Done" appears
+* **Triggers:** Large feature set (200+ features) × large date range (2008-2020) × CSI300 stocks
+* **Not the issue:** Imports work fine, not OOM (memory only ~400MB during hangs)
+* **Solution needed:** Disable urllib3 warnings to see actual errors, test with reduced date ranges (2015-2020), check Qlib data integrity
+* **Status:** BLOCKING - Exp6-8 experiments cannot proceed until this is resolved
+
 ## Deep Learning Factor Model Optimization Insights (2026-02-14)
 
 * 锦标赛方法对比（LGBM模型，5种方法）：
@@ -28,12 +39,25 @@
   - 结论：使用 Single Elimination 作为后续DL实验的排序方法
 * Bug修复经验：sorting_algorithms.py:716 - 接受"random"和"random_matching"两种命名，提高配置兼容性
 
-* 特征预处理方法对比（基线DL模型，3种方法）：
-  - **Baseline（无预处理）** 最佳：年化收益率 17.08%，Sharpe 0.744，Calmar 0.801
-  - Winsorize+Standardize 第2：年化收益率 15.42%，但IC最高（2.11%）
-  - Standardize 表现最差：年化收益率 12.20%，Sharpe 0.527
-  - 关键洞察：预处理并非总是有益，原始特征可能保留更多信息；IC与回测性能并非完全一致
-  - 结论：后续实验使用Baseline配置（无预处理）
+* 网络架构探索（10种架构对比，2026-02-15新实验）：
+  - **Exp B (Depth: 4×64) 最佳**：年化收益率 15.17%，Sharpe 0.6653，最大回撤 -26.99%
+  - Control_2x64: 年化收益率 12.62%，Sharpe 0.5544 (基线，性价比高)
+  - Exp I (Twin Tower): 年化收益率 14.03%，Sharpe 0.6497 (双塔结构表现较好)
+  - Top 3: Exp B (4×64) 15.17%/0.6653, Control (2×64) 12.62%/0.5544, Twin Tower 14.03%/0.6497
+  - 关键发现：
+    - 适中深度表现最佳：4层×64 优于其他深度和宽度变体
+    - 过深网络性能下降：6层性能显著下降（10.01%）
+    - 宽度增加不如深度：3×128 (9.19%), 3×256 (11.15%), 3×512 (9.30%)
+    - 瓶颈和纺锤结构表现中等：Bottleneck 11.04%, Spindle 10.79%
+    - Twin Tower 表现较好：14.03%，仅次于最佳架构
+  - 结论：后续实验使用 4×64 架构
+
+* 特征预处理方法对比（基线DL模型，3种方法，2026-02-15新实验）：
+  - **Standardize (Z-Score) 最佳**：年化收益率 15.22%，Sharpe 0.6697，Calmar 0.5602
+  - Baseline (Raw) 第2：年化收益率 14.46%，Sharpe 0.6253，Calmar 0.5293，IC最高（0.0258）
+  - Winsorize + Standardize 第3：年化收益率 14.23%，Sharpe 0.6131，Calmar 0.5535，Rank IC最高（0.0273）
+  - 关键洞察：标准化提升Sharpe 0.0444；缩尾处理降低性能；IC与回测性能不完全一致
+  - 结论：后续实验使用Standardize (Z-Score)配置
 
 * 网络架构探索（10种架构对比）：
   - **Width_3x512 (3层×512神经元)** 最佳：年化收益率 16.42%，Sharpe 0.739，参数量 765,953
@@ -62,3 +86,209 @@
   ```
 * 使用 process 工具监控任务状态：`process log <sessionId>`
 * 定期检查代码仓库中的结果文件，即使Claude没有直接通知你
+
+**🚨 Claude Code行为问题** (2026-02-14 Task DL-3经验):
+
+* **问题**: Claude Code可能不会按照任务要求约定的位置写报告，也可能不会在任务完成时通知
+* **验证方法**: 必须通过查看所有新生成的文件来准确判断任务进展，不能仅依赖Claude Code的输出
+* **检查清单**:
+  - 实验结果CSV文件是否存在
+  - 模型文件是否存在
+  - 图表文件是否存在
+  - 日志文件是否完整
+  - 实验报告文件是否存在
+  - 任务完成报告文件是否存在
+* **发现**: Task DL-3虽然日志显示"实验完成!"，但并未生成exp3_normalization_residual_report.md和task_exp3_completion_report.md报告文件
+* **结论**: 即使Claude Code声称完成，也要验证所有输出文件都存在，否则任务不算真正完成
+* **对策**: 在任务文件中明确要求：
+  - 在日志中明确列出所有将要生成的文件路径
+  - 每个文件生成后立即print确认
+  - 最后必须显式调用openclaw gateway wake命令通知
+
+### 处理Claude Code卡死的完整流程（2026-02-14经验总结）
+
+**症状识别**:
+1. CPU使用率异常（95%高负载或22%持续低负载但无进展）
+2. 日志文件停止增长
+3. Claude Code状态显示相同的状态超过30分钟
+4. 进程无响应
+5. 没有生成新的日志文件
+
+**失败模式分类**:
+
+**模式1: 语法/启动错误**
+- 现象: Python报错立即退出（如IndentationError）
+- 处理: 修复语法错误，重新运行
+
+**模式2: 死循环/无限等待（高CPU）**
+- 现象: CPU 95%，日志停止输出
+- 可能原因:
+  - 数据加载死循环
+  - 训练循环条件错误
+  - 资源泄漏导致无限等待
+- 处理: 检查循环条件，添加超时机制
+
+**模式3: 处理阶段卡死（低CPU）**
+- 现象: CPU 20-30%，无日志输出
+- 可能原因:
+  - 模型初始化问题
+  - 数据处理IO阻塞
+  - 内存不足导致频繁GC
+- 处理: 添加日志输出到每个关键步骤
+
+**分阶段实验策略**（解决卡死问题的有效方法）:
+
+1. **阶段1: 最小化验证**
+   - 只运行1个配置
+   - 训练1-2个epoch
+   - 使用小数据集（前100个样本）
+   - 关闭复杂功能（如数据增强）
+   - 目标: 验证代码可运行性
+
+2. **阶段2: 逐步扩展**
+   - 运行完整训练轮次（但只1个配置）
+   - 验证训练稳定性
+   - 目标: 确认无内存/性能问题
+
+3. **阶段3: 完整实验**
+   - 运行所有配置
+   - 目标: 完成完整实验
+
+**任务文件编写最佳实践**:
+1. 添加详细的失败历史描述
+2. 提供代码检查清单（语法、数据处理、模型、训练循环）
+3. 明确要求分阶段实验
+4. 要求详细的日志输出（每个关键步骤都要有日志）
+5. 避免使用可能抑制日志的工具（如tqdm）
+6. 要求使用print + tee确保日志实时写入
+
+**监控和干预**:
+1. 每隔30分钟检查一次任务状态
+2. 如果发现卡死现象：
+   - 先记录症状（CPU、内存、日志状态）
+   - 终止进程
+   - 分析日志最后输出
+   - 更新任务文件
+   - 决定是修复代码还是重启
+3. 如果连续2次以相同方式失败：
+   - 停止自动重启
+   - 人工调试代码
+* 现代归一化与残差连接实验（5种配置对比，2026-02-15新实验）：
+  - **Control (无归一化，无残差) 最佳**：年化收益率 10.97%，Sharpe 0.4835，最大回撤 -29.01%
+  - Exp A (LayerNorm): 10.80%/0.4809, Exp B (BatchNorm): 9.85%/0.4642, Exp C (Residual): 9.36%/0.4192, Exp D (Residual+LN): 8.97%/0.4072
+  - 关键发现：
+    - 基线配置（无现代技术）表现最好
+    - LayerNorm (0.4809) 略优于 BatchNorm (0.4642)，但两者都不如基线
+    - 残差连接显著降低性能（下降 13-16% Sharpe）
+    - 意外结果：对于这个问题规模，简单架构可能优于复杂架构
+    - 结论：后续实验使用 Control 配置（无归一化，无残差连接）
+
+* 激活函数选择实验（3种激活函数对比，2026-02-15新实验）：
+  - **Control (ReLU) 最佳**：年化收益率 13.80%，Sharpe 0.6042
+  - Exp A (PReLU): 9.85%/0.4296, Exp B (Swish): 7.37%/0.3240
+  - 关键发现：
+    - PReLU 虽然可学习负斜率但性能下降（相比 ReLU 下降 29% Sharpe）
+    - Swish 提供平滑激活但显著表现更差（相比 ReLU 下降 46% Sharpe）
+    - 结论：后续实验使用 ReLU 激活函数
+
+* 前端TDD测试（绿色阶段）：针对Chrome DevTools完成代码修复和全面测试，2026-02-15新任务
+  - **问题识别**：红色阶段发现代码组织、API集成、UI/UX、图表实现等方面的问题
+  - **修复策略**：使用Chrome DevTools系统化测试，修复已知问题
+  - **关键改进**：代码审查、API测试、前端测试（导航、表单、结果显示、错误处理）、响应式设计验证
+  - **测试结果**：24个测试，23个通过，1个失败（94%通过率），2个关键bug修复
+  - **结论**：所有测试阶段完成，前端准备部署（有一个待解决的后端问题：portfolio summary数据不一致）
+
+## Qlib Data Loading Issues (2026-02-18)
+
+* **Issue**: Qlib 0.9.7 returns only 2 instruments instead of expected CSI300 stocks
+* **Root Cause**: Data directory structure incompatible with current Qlib version
+* **Symptoms**:
+  - `D.instruments(market='csi300')` returns only 2 instruments ("market" and others)
+  - KeyError: `slice(None, 5, None)` when accessing data
+  - `qlib.init()` succeeds but data loading fails
+  - Experiment logs: "Generated 0 pairs in 0 batches"
+* **Solution**: Use alternative data loading methods:
+  1. Read instruments directly from `~/.qlib/qlib_data/cn_data/instruments/csi300.txt`
+  2. Verify Qlib data integrity with `qlib-data download` scripts
+  3. Check Qlib version compatibility (current: 0.9.7)
+* **Status**: BLOCKING - Exp7 cannot proceed until data loading is fixed
+
+## API Rate Limiting Management (2026-02-18)
+
+* **Issue**: 5-hour usage quota reached during long-running experiments
+* **Error Message**: "已达到 5 小时的使用上限。您的限额将在 2026-02-18 03:39:22 重置"
+* **Symptoms**:
+  - Repeated API timeout errors (attempt 1-10 retries)
+  - "API_TIMEOUT_MS=3000000ms, try increasing it"
+  - Task hangs indefinitely after quota exceeded
+* **Prevention Strategies**:
+  1. Break large experiments into smaller chunks
+  2. Use offline mode for local computation where possible
+  3. Implement checkpointing to resume after quota reset
+  4. Monitor API usage with session_status tool
+* **Resolution**: Wait for quota reset (at scheduled time) before retrying
+* **Experience**: 4-hour tasks are at high risk of hitting quota limits; consider shorter subtasks
+
+
+## Claude Code Session Stuck Issues (2026-02-18)
+
+* **Issue**: Frontend testing task (quiet-coral session) got stuck and was killed (SIGKILL)
+* **Symptoms**:
+  - Session running for ~36 minutes with no progress
+  - Process in Ss (sleep) state - likely waiting for input or hung
+  - No test logs or output generated
+  - Session appeared idle throughout execution
+* **Task Details**:
+  - Task: Frontend Testing with Chrome DevTools MCP
+  - Expected: Test alpha_mining frontend, generate report, send via Telegram
+  - Session started: 05:35:00
+  - Session killed: 06:11:00
+  - No outputs: frontend_test_report.md not created
+* **Possible Causes**:
+  1. Chrome DevTools MCP not available or not properly configured
+  2. Session encountered initialization error and hung instead of failing
+  3. Session entered interactive mode requiring user input
+  4. Task file instructions unclear about how to use Chrome DevTools MCP
+  5. Frontend server not running (need to check backend main.py)
+  6. MCP tool limitations or compatibility issues
+* **Prevention Strategies**:
+  1. Verify MCP tools are available before assigning tasks that use them
+  2. Test task with minimal example before full execution
+  3. Check if frontend/backend servers are running before testing
+  4. Add explicit MCP tool availability check to task
+  5. Include fallback testing methods (manual testing) if MCP fails
+  6. Add timeout limits to task file to prevent indefinite hanging
+* **Resolution**: Session was killed, task marked as FAILED
+* **Next Steps**: 
+  1. Check if Chrome DevTools MCP is installed and configured
+  2. Verify frontend server can be started
+  3. Consider manual testing or alternative testing approach
+  4. Retry with more detailed task instructions
+
+## Exp6 Feature Reconstruction Error (2026-02-18)
+
+* **Issue**: EXP 6/7 (Feature Reconstruction λ=0.5) failed with unpacking error
+* **Error Message**: "too many values to unpack (expected 3)"
+* **Symptoms**:
+  - Training completed successfully for EXP 6/7
+  - Error occurred during result processing or backtest
+  - EXP 7/7 (Feature Reconstruction λ=1.0) started and is running
+* **Possible Causes**:
+  1. Model output format mismatch (MLPModelWithFeatureRecon returns different number of values)
+  2. Result unpacking expects 3 values but model returns different number
+  3. Data format issue with feature reconstruction output
+* **Impact**:
+  - EXP 6/7 results are missing
+  - Cannot compare λ=0.5 with other λ values
+  - Need to fix and re-run EXP 6/7 after EXP 7/7 completes
+* **Investigation Needed**:
+  1. Check MLPModelWithFeatureRecon forward() method return format
+  2. Verify result processing code in workflow.py
+  3. Compare with MLPModelWithReturnPred (which works)
+* **Status**: BLOCKING - Need to fix and re-run EXP 6/7 before finalizing Exp6 results
+* **Next Steps**:
+  1. Wait for EXP 7/7 to complete
+  2. Investigate and fix the unpacking error
+  3. Re-run EXP 6/7
+  4. Generate complete exp6_multitask_results.csv and report
+
