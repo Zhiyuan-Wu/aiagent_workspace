@@ -9,7 +9,7 @@
 
 ## TODO – List below any items you need to handle later (e.g., pending tasks, checking results, notifying user, etc.). Remove each item once it has been addressed.
 
-- [Completed] Task Exp6: Multi-task Learning with Auxiliary Loss Functions
+- [Archived] Task Exp6: Multi-task Learning with Auxiliary Loss Functions
   - [Required] Raw User Request: Complete Experiment 6 (Multi-task Learning) from deeplearning_for_pair_wise_prediction.md
   - [Required] Status: COMPLETED - All 7/7 configs completed successfully
   - [Required] Prerequisite: Exp5 (Optimizer and Learning Rate) completed
@@ -24,29 +24,30 @@
   - [Required] Task File: claude_tasks/task_20260218_092000_exp6_multitask_loss.txt → task_history/260220/
   - [Required] Claude Session: fresh-crustacean (completed ~24 hours)
   - [Required] Completed at: 2026-02-20 05:42:45
-  - [Required] Progress: 7/7 configs completed successfully
-    - ✅ Control - Sharpe 0.3589 (8.55%)
-    - ✅ Return Prediction (λ=0.1) - Sharpe 0.2914 (6.80%)
-    - ✅ Return Prediction (λ=0.5) - Sharpe -0.0863 (-2.06%)
-    - ✅ Return Prediction (λ=1.0) - Sharpe 0.1813 (4.54%)
-    - ✅ Feature Reconstruction (λ=0.1) - Sharpe 0.0562 (1.29%)
-    - ✅ Feature Reconstruction (λ=0.5) - Sharpe 0.2933 (6.80%)
-    - ✅ Feature Reconstruction (λ=1.0) - Sharpe 0.2819 (6.44%)
   - [Required] Best Config: Control - 8.55% return, Sharpe 0.3589
   - [Required] Result File: alpha_mining/results/exp6_multitask_results_20260220_054245.csv
   - [Required] Report File: alpha_mining/results/exp6_multitask_report_20260220_054245.md
-  - [Required] Completion Report: alpha_mining/results/task_exp6_completion_report_20260220_054245.md
   - [Required] Note: Task completed successfully from checkpoint after previous failure
 
-- [Pending] Task Exp7: Data Augmentation
+- [Running] Task Exp7: Data Augmentation
   - [Required] Raw User Request: Complete Experiment 7 (Data Augmentation) from deeplearning_for_pair_wise_prediction.md
-  - [Required] Status: PENDING - Exp6 completed, ready to start
+  - [Required] Status: RUNNING - Started at 2026-02-20 08:07:45
+  - [Required] Prerequisite: Exp6 completed
   - [Required] Experiment Design:
-    - Control: No augmentation
-    - Exp A: Cross-sectional Mixup
-    - Exp B: Feature Noise (Gaussian noise N(0, ε))
+    - Control: No augmentation (baseline from Exp6)
+    - Exp A1: Cross-sectional Mixup (α=0.2)
+    - Exp A2: Cross-sectional Mixup (α=0.4)
+    - Exp B1: Feature Noise (Gaussian noise N(0, 0.01))
+    - Exp B2: Feature Noise (Gaussian noise N(0, 0.05))
+    - Exp B3: Feature Noise (Gaussian noise N(0, 0.10))
+  - [Required] Configuration: Best from Exp6 (Control + Return Prediction λ=0.5)
   - [Required] Deliverables: exp7_augmentation_results.csv, exp7_augmentation_report.md, task_exp7_completion_report.md
   - [Required] Archive location: task_history/260220/
+  - [Required] Task File: claude_tasks/task_20260220_080500_exp7_augmentation.txt
+  - [Required] Claude Session: Running in background (PID: 10671)
+  - [Required] Estimated Time: ~4-6 hours
+  - [Required] Progress: Experiment 1/6 (Control) - Handler built, training starting
+  - [Required] Log: results/exp7_augmentation_log_20260220_080745.txt
 
 - [Pending] Task Exp8: Feature Interaction and Self-Attention
   - [Required] Raw User Request: Complete Experiment 8 (Feature Interaction and Self-Attention) from deeplearning_for_pair_wise_prediction.md
