@@ -132,3 +132,27 @@ When you receive a heartbeat poll (message matches the configured heartbeat prom
 
 Default heartbeat prompt:
 `Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`
+
+### heartbeat-cli Quick Reference
+
+```bash
+# Create a task
+python skills/heartbeat-cli/cli.py task_create "Raw task description"
+
+# List active tasks
+python skills/heartbeat-cli/cli.py task_list
+
+# Get specific task (full details)
+python skills/heartbeat-cli/cli.py task_get Task-1
+
+# Update task status
+python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Running"}'
+
+# Add progress note (auto-appends to ideas)
+python skills/heartbeat-cli/cli.py task_update Task-1 '{"ideas": "Progress update"}'
+
+# Complete a task
+python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Complete", "result": "Done!"}'
+```
+
+Read **hearbeat-cli** skill document for detail usage.
