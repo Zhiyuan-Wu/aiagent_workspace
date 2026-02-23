@@ -134,10 +134,11 @@ Default heartbeat prompt:
 `Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`
 
 ### heartbeat-cli Quick Reference
+What to record in heartbeat-cli: claude-session-id, task dependency, progress, issue, new idea, everthing.
 
 ```bash
 # Create a task
-python skills/heartbeat-cli/cli.py task_create "Raw task description"
+python skills/heartbeat-cli/cli.py task_create "Raw task description" --extra_fields '{"claude-session-id": "not started yet", "dependency": "wait for Task-XX and Task-YY"}'
 
 # List active tasks
 python skills/heartbeat-cli/cli.py task_list
@@ -146,7 +147,8 @@ python skills/heartbeat-cli/cli.py task_list
 python skills/heartbeat-cli/cli.py task_get Task-1
 
 # Update task status
-python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Running"}'
+# What to record in heartbeat-cli: claude-session-id, task dependency, progress, issue, new idea, everthing.
+python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Running", "claude-session-id": "cool-bob", "dependency": "wait for Task-XX and Task-YY"}'
 
 # Add progress note (auto-appends to ideas)
 python skills/heartbeat-cli/cli.py task_update Task-1 '{"ideas": "Progress update"}'

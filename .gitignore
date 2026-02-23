@@ -6,6 +6,7 @@
 !memory/MEMORY.md
 !great_blog/
 !great_blog/*
+!great_blog/**/*
 !AGENTS.md
 !HEARTBEAT.md
 !IDENTITY.md
