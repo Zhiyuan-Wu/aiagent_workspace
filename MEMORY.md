@@ -422,5 +422,14 @@
      - Line 2626-2630: Added fm_only, deepfm, self_attention_1, self_attention_2 to predict() multiprocessing check
   3. ✅ Verified FMModel class exists (line 970), fm_only model creation uses FMModel (correct)
   4. ✅ Code ready for testing - all 3 bugs fixed
-  5. Running Control test (5 epochs) to validate Sharpe improves to ~0.49
-  6. Next: Run full Exp8 retry with all 7 configs (Control, FM-8, FM-16, DeepFM-8, DeepFM-16, Attention-1L-2H, Attention-2L-4H)
+  5. ❌ Investigation test stuck: Control test (5 epochs) hung at Epoch 2/5 for 4.5 hours
+  6. 🔴 Task-13 FAILED: Session stuck, root cause unknown. May be:
+     - Training loop infinite iteration
+     - MPS GPU compatibility issue
+     - Model state not saving/loading properly
+     - Data generator blocking
+  7. Next: Need simpler test approach before full Exp8 retry:
+     - Test with minimal epochs (1-2)
+     - Add explicit logging at each step
+     - Verify MPS GPU training works
+     - Test data pipeline separately
