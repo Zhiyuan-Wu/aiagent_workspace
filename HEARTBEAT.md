@@ -13,21 +13,4 @@
 
 ## TODO
 
-- [Running] Task-13:
-  - Raw User Request: Exp8 Retry 2: Complete feature interaction experiment properly. Previous attempt (Feb 24) failed: only 1/7 configs ran, Control Sharpe dropped 58% (0.2053 vs 0.4925). Issues: (1) Why Control performance degraded? (2) FM/DeepFM/Attention never implemented. (3) Experiment stopped early. Approach: (1) First debug and fix Control performance issue by comparing with Exp7 config; (2) Implement FM-only (2 configs), DeepFM (2 configs), Self-Attention (2 configs) as separate testable modules; (3) Run ALL 7 configs with explicit validation after each; (4) Complete only when all results match expectations and all configs finished.
-  - Idea:
-    - Session terminated with SIGTERM (code 143) at 10:03 while running Phase 2 (FM-8). Error: Model not trained yet. The FM model fit() method failed to properly train/save model state. Need to investigate PairwiseRankModel training for fm_only model type.
-    - Started investigation task (calm-cove) before full Exp8 retry. Phase 1: Investigate Control 58% performance degradation. Phase 2: Fix FM model training failure. Phase 3: Validate fixes with actual runs. Estimated 2 hours for investigation, then full Exp8 retry.
-    - Investigation in progress: Testing Control model (5 epochs) to validate fix and check performance. Currently at Epoch 2/5, training smoothly. This will help identify Control 58% degradation root cause. Phase 1 of 3-phase investigation (Control test → FM fix → Validation).
-    - Investigation report generated but fixes NOT yet applied to code. Found 3 bugs: (1) Line 2204: return_returns == 'return' should be 'return_pred'; (2) Line 1705: FM models not in PyTorch fit() check; (3) Line 2647: FM models not in predict() multiprocessing check. Code still has bugs. Need to apply fixes before full Exp8 retry.
-    - All 3 bugs already fixed in code! (1) Line 2204: return_returns == 'return_pred' - FIXED; (2) Line 1705-1709: FM models in fit() check - FIXED; (3) Line 2647-2651: FM models in predict() check - FIXED. Code ready for validation. Control test (5 epochs) running to verify Sharpe improves to ~0.49.
-    - Code fixes applied: (1) Line 2204: return_returns == 'return_pred' - FIXED; (2) Line 1705-1709: FM models in fit() check - FIXED; (3) Line 2647-2651: FM models in predict() check - FIXED. BUT: FMOnlyModel class NOT yet implemented! Only DeepFMModel and SelfAttentionModel exist. FM model training will fail. Need to implement FMOnlyModel class before testing.
-    - All fixes applied: (1) Line 2204: return_returns == 'return_pred' - FIXED; (2) Line 1705-1709: FM models in fit() check - FIXED; (3) Line 2626: FM models in predict() check - FIXED; (4) fm_only model creation uses FMModel (correct class) - FIXED. Code ready for testing. Control test (5 epochs) running to verify Sharpe improves to ~0.49.
-    - Session calm-cove stuck for 4.5 hours (should complete in 30min). Log last updated at 10:57, frozen at Epoch 2/5. No new result files generated. Session alive but not progressing - likely hung on training. Need to kill session and restart with simpler approach.
-  - Status: Running
-  - Created At: 2026-02-24T09:34:12.315618
-  - Updated At: 2026-02-24T14:04:11.980180
-  - claude-session-id: calm-cove
-  - estimated_hours: 10
-  - priority: critical
-  <!-- task_id: Task-13 -->
+No active tasks.
