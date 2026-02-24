@@ -435,3 +435,38 @@
      - Add explicit logging at each step
      - Verify MPS GPU training works
      - Test data pipeline separately
+
+## Session Monitoring & Hung Experiment Detection (2026-02-24)
+
+* **Issue**: Investigation session (calm-cove) stuck for 4.5 hours without progress
+* **Symptoms**:
+  - Session in "thinking" state continuously
+  - Log file frozen at Epoch 2/5 (no new lines)
+  - No new result files generated
+  - Session alive but not executing
+* **Pattern observed in multiple experiments**:
+  1. Exp6 (Feb 17): SIGKILL after infinite retry loop
+  2. Exp8 (Feb 21): Joblib warnings + no completion report
+  3. Exp8 (Feb 24): Session stuck at Epoch 2/5 for 4.5 hours
+* **Root Causes**:
+  1. Training loop infinite iteration
+  2. MPS GPU compatibility/timeout issues
+  3. Model state not saving/loading properly
+  4. Data generator blocking
+  5. Qlib data loading hanging (urllib3 infinite warnings)
+* **Detection Strategies**:
+  - Monitor log file modification times (should update frequently)
+  - Check session state: "thinking" without progress = likely hung
+  - Verify expected time vs actual time (5 epochs should take ~30min, not 4.5 hours)
+  - Check for new output files (none generated = stuck)
+* **Prevention Strategies**:
+  1. Test with minimal epochs first (1-2) before full runs
+  2. Add explicit logging at every critical step (data loading, model init, each epoch)
+  3. Use smaller datasets for initial validation
+  4. Add timeout mechanisms to training loops
+  5. Monitor memory and GPU usage during execution
+  6. Implement checkpointing to resume from failures
+* **Lesson**: Never trust session state alone - validate through file changes, log growth, and timing metrics
+     - Add explicit logging at each step
+     - Verify MPS GPU training works
+     - Test data pipeline separately
