@@ -292,3 +292,135 @@
   3. Re-run EXP 6/7
   4. Generate complete exp6_multitask_results.csv and report
 
+
+## Qlib数据读取问题与解决方案 (2026-02-23)
+
+* **问题现象**：`D.instruments('csi300')` 只返回2个值（`['market', 'filter_pipe']`），而`csi300.txt`文件实际包含15898只股票。这导致回测无法正常执行，所有回测指标都是0.00%。
+
+* **根本原因**：Qlib 0.9.7版本的`D.instruments()`方法在读取股票池时存在兼容性问题，无法正确解析instruments文件。
+
+* **解决方案**：不要直接使用`D.instruments()`获取股票列表。应该使用`DataHandlerLP`通过`MyAlpha`数据处理器获取instruments：
+  ```python
+  from qlib.data.dataset import DatasetH
+  from pair_wise_ranking.data_handler import MyAlpha
+
+  handler_kwargs = {
+      "instruments": stock_pool,
+      "start_time": start_date,
+      "end_time": end_date,
+      "fit_start_time": start_date,
+      "fit_end_time": end_date,
+  }
+
+  handler = MyAlpha(**handler_kwargs)
+  dataset = DatasetH(handler=handler, segments={
+      "train": (start_date, end_date)
+  })
+  
+  # 获取instruments列表
+  instruments = list(dataset.handler.instruments)
+  ```
+
+* **为什么不能用文件直接读取**：虽然可以直接读取`~/.qlib/qlib_data/cn_data/instruments/{stock_pool}.txt`文件，但这违背了Qlib的设计原则，可能导致未来Qlib版本升级时的兼容性问题。应该使用Qlib提供的数据处理API。
+
+* **多进程问题**：使用MyAlpha初始化时，会触发Qlib的多进程数据处理（joblib）。如果脚本没有使用`if __name__ == '__main__':`保护，会出现multiprocessing错误。
+
+* **其他策略的参考**：在`pairwise_rank_strategy.py`和`pointwise_strategy.py`中，都是通过MyAlpha数据处理器来获取instruments的，这是正确的做法。
+
+## Exp8 Feature Interaction Experiment Failure (2026-02-24)
+
+* **Issue**: Experiment 8 (Feature Interaction and Self-Attention) failed without generating completion report
+* **Status**: BLOCKING - Exp8 was attempted but crashed, no follow-up TODO created
+* **Task File**: `task_history/260220/task_20260221_092000_exp8_interaction_redo.txt`
+* **Experiment Started**: 2026-02-21 10:58:20
+* **Last Activity**: 2026-02-21 23:48 (process crashed with joblib warnings)
+* **Symptoms**:
+  - Control experiment completed successfully
+  - FM-only and DeepFM experiments started training
+  - Process crashed with joblib resource_tracker warnings indicating SIGKILL
+  - No completion report generated
+  - No follow-up TODO created
+  - No memory entry documenting the failure (until now)
+* **What Happened**:
+  - Task assigned to Claude Code in background session
+  - Detailed task file with incremental testing strategy (5 epochs first, then 50 epochs)
+  - Control experiment succeeded (verified baseline)
+  - Started FM-only embedding=8 and 16 training
+  - Started DeepFM embedding=8 and 16 training
+  - DeepFM-8 failed with "DeepFMModel.forward() takes 2 positional arguments but 3 were given"
+  - DeepFM-16 training started but process crashed with joblib warnings
+  - No notification to user, no completion report
+* **Root Cause Analysis**:
+  1. DeepFM model has incorrect forward() signature (accepts 2 args but called with 3)
+  2. Process crashed likely due to resource exhaustion or timeout
+  3. No graceful error handling or recovery
+  4. No monitoring/alerting when task failed silently
+* **Missing Follow-up**:
+  - Task was not tracked in heartbeat-cli
+  - No TODO created to fix and retry
+  - No memory entry documenting failure until now (3+ days later)
+  - User was never informed of the failure
+* **Lessons Learned**:
+  1. Background Claude Code tasks must be actively monitored
+  2. Task failures should trigger automatic TODO creation
+  3. Complex model implementations (FM/DeepFM/Attention) need more thorough testing before full experiments
+  4. Task files should include explicit failure recovery instructions
+  5. Memory entries should be created promptly when tasks fail
+* **Next Steps Needed**:
+  1. Fix DeepFM model forward() signature issue
+  2. Implement FM-only and Self-Attention models if not already done
+  3. Create comprehensive test suite for new models (test with minimal data first)
+  4. Re-run Exp8 with better error handling and monitoring
+  5. Ensure task completion notification is sent to user
+* **Reference Files**:
+  - Task file: `task_history/260220/task_20260221_092000_exp8_interaction_redo.txt`
+  - Retry task file: `claude_tasks/task_20260224_140300_exp8_retry.txt`
+  - Logs: `alpha_mining/history/deeplearning_for_pairwise/results/exp8_*.log`
+  - Latest results: `alpha_mining/results/exp8_interaction_results_20260224_092919.csv`
+  - Previous success: Exp7 completion report available for reference
+
+## Exp8 Retry Failure (2026-02-24)
+
+* **Issue**: Exp8 retry completed prematurely with incomplete results and severe performance degradation
+* **Status**: FAILED - Experiment ran only 1/7 configurations (Control only)
+* **Task File**: `claude_tasks/task_20260224_140300_exp8_retry.txt`
+* **Task Assigned**: Feb 24, 06:32:25
+* **Task Completed**: Feb 24, 09:29:19 (3 hours total)
+* **Symptoms**:
+  - Control experiment completed but Sharpe 0.2053 (vs expected 0.4925 from Exp7) - 58% degradation
+  - FM-only models (2 configs) - NOT implemented
+  - DeepFM models (2 configs) - NOT implemented
+  - Self-Attention models (2 configs) - NOT implemented
+  - Experiment stopped early without error or completion of all phases
+  - Claude Code marked task as complete despite incomplete execution
+* **Root Cause Analysis**:
+  1. **Control performance collapse**: Exp7 baseline achieved Sharpe 0.4925, but retry achieved only 0.2053
+     - Possible causes: data loading issue, preprocessing bug, configuration mismatch
+     - Training completed smoothly (50 epochs, loss decreasing), suggesting code ran correctly
+     - Need to compare Exp7 vs Exp8 control configs side-by-side
+  2. **Missing model implementations**: Task file clearly specified 7 configs (Control + 2 FM + 2 DeepFM + 2 Self-Attention)
+     - Claude Code skipped Phases 2-4 entirely
+     - Possible causes: early termination condition, error handling bug, task misinterpretation
+  3. **Early completion**: Experiment stopped after Control without proceeding to FM/DeepFM/Attention phases
+     - Possible causes: conditional logic error, phase tracking bug, silent failure
+* **Impact**:
+  - Cannot compare FM/DeepFM/Attention against Control baseline
+  - Cannot identify which feature interaction mechanism works best (if any)
+  - Cannot complete deep learning model optimization series
+  - Previous Exp8 failure (Feb 21) remains unresolved
+* **Lessons Learned**:
+  1. Background Claude Code tasks may claim completion without actually completing all required work
+  2. Task specification must be extremely explicit about deliverables and completion criteria
+  3. Need to validate performance metrics immediately after Control phase before proceeding
+  4. Should implement FM/DeepFM/Attention models as separate, testable modules before full experiment
+  5. Task files should include explicit phase completion validation (e.g., "Do not proceed until Control Sharpe ≥ 0.48")
+* **Next Steps Needed**:
+  1. ✅ Investigated why Control performance degraded 58% from Exp7
+  2. ✅ Fixed 3 bugs in models.py:
+     - Line 2204: `return_returns == 'return'` → `return_returns == 'return_pred'`
+     - Line 1705-1709: Added fm_only, deepfm, self_attention_1, self_attention_2 to fit() PyTorch check
+     - Line 2626-2630: Added fm_only, deepfm, self_attention_1, self_attention_2 to predict() multiprocessing check
+  3. ✅ Verified FMModel class exists (line 970), fm_only model creation uses FMModel (correct)
+  4. ✅ Code ready for testing - all 3 bugs fixed
+  5. Running Control test (5 epochs) to validate Sharpe improves to ~0.49
+  6. Next: Run full Exp8 retry with all 7 configs (Control, FM-8, FM-16, DeepFM-8, DeepFM-16, Attention-1L-2H, Attention-2L-4H)
