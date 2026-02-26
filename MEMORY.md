@@ -501,3 +501,73 @@
   - Empty task.log files are red flags for silent failures
   - Backend/frontend servers should be shut down after use
   - Heartbeat checks should include process monitoring
+
+## Backend StatReload Malfunction (2026-02-26 Evening)
+
+* **Issue**: Backend server stuck in filesystem scanning loop
+* **Discovered During**: Evening heartbeat check at 21:11
+* **Symptoms**:
+  - PID 18741: 97.3% CPU continuously for 46+ minutes
+  - Process state: Running (R) - not sleeping
+  - Sample trace: 216/641 samples in `os_lstat` calls
+  - Backend.log shows multiple StatReload restarts
+  - API endpoints returning 500 errors
+  - No recent successful API requests (last ones at 21:07)
+* **Root Causes**:
+  1. StatReload feature malfunctioning - stuck in file monitoring loop
+  2. Continuous filesystem scanning instead of watching for changes
+  3. No timeout or rate limiting on file checks
+* **Detection Method**:
+  1. Process using 97% CPU for 46+ minutes (abnormal for idle server)
+  2. Sample tool showing repeated `lstat` system calls
+  3. Process state 'R' (running) instead of 'S' (sleeping)
+  4. Log shows StatReload causing multiple restarts
+* **Cleanup Actions**:
+  1. Killed stuck backend process (PID 18741)
+  2. Cleaned up 3 empty task logs from last 24 hours
+  3. Verified no other backend processes running
+* **Prevention Strategies**:
+  1. Disable StatReload in production/long-running sessions
+  2. Use proper process managers (systemd, supervisord) instead of StatReload
+  3. Add CPU usage monitoring alerts (> 50% for > 5 minutes)
+  4. Implement rate limiting for file system checks
+* **Status**: ✅ Resolved - Stuck process killed, system cleaned
+* **Lessons**:
+  - StatReload is for development only, not for long-running production servers
+  - High CPU usage for > 30 minutes is a red flag for web servers
+  - Process sampling (`sample` command) reveals actual bottleneck
+  - Always check API health when servers show unusual CPU patterns
+
+## Backend StatReload Recurrence (2026-02-26 Night)
+
+* **Issue**: StatReload malfunction happened again - second occurrence in same day
+* **Discovered During**: Night heartbeat check at 21:37
+* **Symptoms**:
+  - PID 30209: 96.6% CPU continuously for 9+ minutes
+  - Backend restarted after previous cleanup at 21:11
+  - Same pattern: high CPU for idle server, stuck in file monitoring loop
+* **Root Cause**: Backend server automatically restarted with StatReload enabled
+* **Cleanup Actions**:
+  1. Killed stuck backend process (PID 30209)
+  2. Cleaned up 2 empty inference task directories
+* **Status**: ✅ Resolved - Second occurrence handled
+* **Pattern Recognition**:
+  - First occurrence: 21:11, PID 18741, 97.3% CPU for 46+ minutes
+  - Second occurrence: 21:37, PID 30209, 96.6% CPU for 9+ minutes
+  - Issue repeats whenever backend server starts with StatReload enabled
+* **Urgent Action Needed**:
+  - Disable StatReload in backend startup configuration
+  - Add check to prevent StatReload from being enabled in production
+  - Consider removing StatReload dependency entirely for long-running servers
+* **Root Cause Found**: Backend `main.py:3139` has hardcoded `reload=True` in `uvicorn.run()` call
+* **Suggested Fix**: Change `reload=True` to use environment variable or default to `False`:
+  ```python
+  # Current (problematic):
+  uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+
+  # Suggested fix:
+  import os
+  reload = os.getenv("BACKEND_RELOAD", "false").lower() == "true"
+  uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=reload, log_level="info")
+  ```
+* **Lesson**: The issue will keep recurring until StatReload is disabled in the backend configuration
