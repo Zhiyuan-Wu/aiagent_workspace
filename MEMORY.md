@@ -467,6 +467,37 @@
   5. Monitor memory and GPU usage during execution
   6. Implement checkpointing to resume from failures
 * **Lesson**: Never trust session state alone - validate through file changes, log growth, and timing metrics
-     - Add explicit logging at each step
-     - Verify MPS GPU training works
-     - Test data pipeline separately
+
+## Orphaned Process Cleanup (2026-02-26)
+
+* **Issue**: Multiple long-running Python processes consuming resources unnecessarily
+* **Discovered During**: Heartbeat check - found 3 stuck worker processes
+* **Symptoms**:
+  - PID 93308: 79.2% CPU, running 456 minutes (since 12:31AM)
+  - PID 35754: 66.5% CPU, running 397 minutes (since 1:09AM)
+  - PID 95360: 54.4% CPU, running 343 minutes (since 12:56AM)
+  - Backend server running 9 hours (since 01:19AM)
+  - Frontend server running 10+ days (since Sunday)
+  - 33 task directories with 0-byte log files (failed silently)
+* **Root Causes**:
+  1. Tasks failed silently without proper error handling
+  2. No process timeout mechanisms in task execution
+  3. Backend/frontend servers not shut down after use
+  4. Orphaned multiprocessing/joblib workers not cleaned up
+* **Cleanup Actions**:
+  1. Killed stuck worker processes (PIDs 93308, 35754, 95360)
+  2. Killed orphaned backend main process (PID 93308)
+  3. Killed old frontend uvicorn server (PID 57019)
+  4. Identified 198 old task directories with empty logs (>1 day old)
+* **Prevention Strategies**:
+  1. Add timeout monitoring to task execution (kill if > 2 hours for typical tasks)
+  2. Implement proper error logging (ensure non-zero task.log size before exit)
+  3. Add process cleanup on application shutdown
+  4. Regular heartbeat monitoring for orphaned processes
+  5. Implement process tracking table to monitor running tasks
+* **Status**: ✅ Resolved - All orphaned processes cleaned up
+* **Lessons**:
+  - Always monitor CPU usage of long-running processes
+  - Empty task.log files are red flags for silent failures
+  - Backend/frontend servers should be shut down after use
+  - Heartbeat checks should include process monitoring
