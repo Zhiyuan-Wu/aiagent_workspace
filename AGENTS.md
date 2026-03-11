@@ -65,7 +65,7 @@ Use this for all complex requests requiring the Claude Code AI Agent.
 
 4. **User Sync**
    - After validation and archiving, promptly inform the user of outcomes, insights, and archive location. Send user key report file / result figure via telegram tool.
-   - Set "last_sync" field to current time using hearbeat-cli, to avoid duplicate inform message to user.
+   - Set "last_sync" field to current time and brief sync messages using hearbeat-cli, to avoid duplicate inform message to user.
 
 ### 2. Assign task to Claude Code / Codex
 

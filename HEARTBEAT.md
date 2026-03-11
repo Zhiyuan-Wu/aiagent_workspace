@@ -1,8 +1,8 @@
 # HEARTBEAT.md
 
 ## Routine – Perform these checks regularly (DO NOT REMOVE)
-1. Use `git pull` to fetch any changes to workspace from remote repository.
-2. Check status of all background tasks. For background Claude Code tasks, also check corresponding repository directly for result files. Report to latest progress to user if there's anything new/wrong.
+1. Use `git pull` to fetch any changes to `~/.openclaw/workspace` from remote repository.
+2. Check status of all background tasks. For background Claude Code tasks, also check corresponding repository directly for result files. Report to latest progress to user if there's anything new/wrong. Update "last_sync" field to current time and brief sent messages. Do not push duplicate infrom messages.
 3. If prerequisites of any todo items are completed, start subsequent tasks. Don't ask for permissions, just do it.
 4. Stop completed or outdated background tasks. Remove unused task files in `~/.openclaw/workspace/claude_tasks`.
 5. Record experience and common strategies you've learned while solving problems into `MEMORY.md`. If you have any new findings or suggestions, report to user.
