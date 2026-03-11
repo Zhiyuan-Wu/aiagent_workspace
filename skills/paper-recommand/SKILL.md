@@ -56,7 +56,7 @@ python scripts/paper_fetch_cli.py download <PAPER_ID>
 *(Replace `<PAPER_ID>` with the ID identified in Step 2, e.g., `arxiv:2403.12345`)*
 
 **Extract Full Text (OCR)**
-Convert the downloaded PDF into a structured Markdown file for analysis.
+Convert the downloaded PDF into a structured Markdown file for analysis. This may take a few minutes.
 ```bash
 cd ~/.openclaw/workspace/daily_paper2 && \
 source .venv/bin/activate && \
@@ -75,7 +75,7 @@ python scripts/paper_parse_cli.py paper <PAPER_ID>
     4.  **Results & Conclusion:** What are the quantitative improvements? What is the final takeaway?
 
 #### Step 5: Compile & Deliver Final Report
-**Action:** Merge the insights from the Overview (Step 2) and the Deep Dive (Step 4) into a single, cohesive report. Send this file to the user via Telegram.
+**Action:** Merge the insights from the Overview (Step 2) and the Deep Dive (Step 4) into a single, cohesive report.
 
 *   **Output File:** `daily_paper_final_260310.md`
 *   **Language:** **Chinese (Simplified)**
