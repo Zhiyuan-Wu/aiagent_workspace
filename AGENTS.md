@@ -166,10 +166,10 @@ python skills/heartbeat-cli/cli.py task_get Task-1
 python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Running", "claude-session-id": "cool-bob", "dependency": "wait for Task-XX and Task-YY"}'
 
 # Add progress note (auto-appends to ideas)
-python skills/heartbeat-cli/cli.py task_update Task-1 '{"ideas": "Progress update"}'
+python skills/heartbeat-cli/cli.py task_update Task-1 '{"ideas": "(Progress update), current status sent to user"}'
 
 # Complete a task
-python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Complete", "result": "Done!"}'
+python skills/heartbeat-cli/cli.py task_update Task-1 '{"status": "Complete", "result": "Done!", "last_sync": "2026-01-22 14:03:52 task done and main result sent to user."}'
 ```
 
 Read **hearbeat-cli** skill document for detail usage.
