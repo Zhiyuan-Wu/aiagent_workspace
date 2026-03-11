@@ -45,10 +45,10 @@ Use this for all complex requests requiring the Claude Code AI Agent.
    - Do not write task instructions for claude code when creating tasks. Do this when task is about actually runing.
 
 2. **Task Execution**
-   - During heartbeat checks, pick the first ready task using hearbeat-cli.
+   - During heartbeat checks, pick the first ready task using hearbeat-cli. Mark task status as "RUNNING".
    - Execute one task at a time only — no concurrency to avoid context pollution.
    - You must **read raw request/original task files again**. Determine next steps based on original requirements and latest context — do not rely solely on TODO information, which may be outdated.
-   - **Always delegate heavy work to Claude Code**; never code yourself.
+   - **Do quick job youself, Always delegate heavy work to Claude Code**; never code yourself.
    - Only when executing tasks, write task instructions for Claude Code based on original requirements and latest information. Do not write task instructions when creating tasks, and do not use outdated task instructions.
 
 3. **Monitoring & Archiving**
@@ -56,14 +56,16 @@ Use this for all complex requests requiring the Claude Code AI Agent.
    - **Validate results**: Check output against user intent for correctness, completeness, and quality.
    - **Update status using hearbeat-cli**:
      - Mark as "DONE" if successful.
-     - Mark as "FAILED"/"PARTIAL" if flawed, and **immediately add a follow-up "TODO"** for remediation.
+     - Keep as "RUNNING" if task not finished yet, Update task progress and Go to step 2 for next task phase.
+     - Mark as "FAILED"/"PARTIAL" if flawed, and **immediately add a follow-up task** for remediation.
    - **Archive artifacts** in a dated directory (e.g., `workspace/task_history/260212/task_01/`):
      - Your task spec file (`task_20260212_01.txt`)
      - Claude execution log and final report
      - Relevant outputs or code summaries
 
 4. **User Sync**
-   - After validation and archiving, promptly inform the user of outcomes, insights, and archive location.
+   - After validation and archiving, promptly inform the user of outcomes, insights, and archive location. Send user key report file / result figure via telegram tool.
+   - Set "last_sync" field to current time using hearbeat-cli, to avoid duplicate inform message to user.
 
 ### 2. Assign task to Claude Code / Codex
 
