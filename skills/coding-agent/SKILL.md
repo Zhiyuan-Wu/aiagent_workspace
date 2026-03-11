@@ -51,7 +51,7 @@ You can delegate virtually **any technical or analytical task** to Claude Code /
 Include the following at the end of your task description to ensure Claude Code notifies you upon completion:
 ```text
 When completely finished or need intervention, run this command to inform me:
-openclaw gateway wake --text "(Claude Code's return message or next step suggestions)" --mode now
+openclaw system event --text "(Claude Code's return message or next step suggestions)" --mode now
 ```
 
 **2. Logging Instruction for Experiments/Scripts:**

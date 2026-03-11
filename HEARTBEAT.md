@@ -13,16 +13,15 @@
 
 ## TODO
 
-- [Complete] Task-17:
-  - Raw User Request: 修复Yahoo数据更新任务中的日期解析错误 - ValueError: unconverted data remains when parsing with format '%Y-%m-%d': ' 09:30:00+08:00'. Yahoo返回的数据包含时间信息但代码期望纯日期格式，导致数据归一化阶段失败
-  - Raw Reference: /Users/imac/.openclaw/workspace/alpha_mining/backend/scripts/qlib_util/data_collector/yahoo/collector.py
-  - Idea:
-    - Started Claude Code background task to investigate and fix Yahoo date parsing error
+- [Complete] Task-18:
+  - Raw User Request: 生成今天的最新论文报告 (2026-03-10) - 通过daily_paper2 CLI获取最近7天论文元数据，生成市场概况，选择最相关论文进行深度分析，最终编译中文报告
+  - Raw Reference: ~/.openclaw/workspace/skills/paper-recommand/SKILL.md
   - Status: Complete
-  - Result: Yahoo日期解析错误已修复。修改了backend/scripts/qlib_util/data_collector/yahoo/collector.py的normalize_yahoo方法，实现两层解析策略处理带时区的datetime字符串。添加了2个测试用例，所有测试通过。已提交并推送至远程仓库。
-  - Created At: 2026-03-03T19:12:06.462738
-  - Updated At: 2026-03-03T20:47:09.767804
-  - Completed At: 2026-03-03T20:47:09.767803
-  - claude-session-id: briny-trail
+  - Result: Daily paper report generated successfully
+  - Result File: ~/.openclaw/workspace/daily_paper2/daily_paper_final_260310.md
+  - Created At: 2026-03-10T21:36:34.988555
+  - Updated At: 2026-03-10T22:01:28.712030
+  - Completed At: 2026-03-10T22:01:28.712029
+  - claude-session-id: kind-summit
   - priority: high
-  <!-- task_id: Task-17 -->
+  <!-- task_id: Task-18 -->
