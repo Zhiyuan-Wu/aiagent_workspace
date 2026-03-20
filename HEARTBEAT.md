@@ -11,12 +11,14 @@
 
 ## TODO
 
-- [Running] Task-1:
+- [Complete] Task-1:
   - Raw User Request: Review and finalize alpha_mining experiment results from 2026-03-19 (uncommitted changes: run_experiment.py and result.tsv)
   - Idea:
     - Found uncommitted experiment results from 2026-03-19 08:25: 3 backtests, best ARR=0.533 with rank risk control v1. Informed user of findings.
-  - Status: Running
+  - Status: Complete
+  - Result: Review complete: Found uncommitted experiment from 2026-03-19 08:25 with 3 backtests. Best result: ARR=0.533 (baseline with rank_risk_control_v1). Two normalization experiments discarded (ARR 0.202, 0...
   - Created At: 2026-03-20T04:01:41.976332
-  - Updated At: 2026-03-20T12:30:57.462986
-  - last_sync: 2026-03-20 12:30: No new changes - alpha_mining files unchanged, still waiting for user direction
+  - Updated At: 2026-03-20T14:02:04.888224
+  - Completed At: 2026-03-20T14:02:04.888223
+  - last_sync: 2026-03-20 13:30: No new changes - workspace up to date, no background tasks, alpha_mining files unchanged
   <!-- task_id: Task-1 -->
